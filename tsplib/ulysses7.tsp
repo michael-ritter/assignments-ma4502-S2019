@@ -1,0 +1,16 @@
+NAME: ulysses7.tsp
+TYPE: TSP
+COMMENT: Odyssey of Ulysses (Groetschel/Padberg - Subset of ulysses16)
+DIMENSION: 7
+EDGE_WEIGHT_TYPE: GEO
+DISPLAY_DATA_TYPE: COORD_DISPLAY
+NODE_COORD_SECTION
+ 1 38.24 20.42
+ 2 40.56 25.32
+ 3 36.26 23.12
+ 4 37.56 12.19
+ 5 41.23 9.10
+ 6 36.08 -5.21
+ 7 38.47 15.13
+ EOF
+
