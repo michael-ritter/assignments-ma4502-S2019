@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Quick Introduction to Gurobi</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(https://fonts.googleapis.com/css?family=Roboto);
+      @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Source+Code+Pro:500,700,500italic);
+
+     body { font-family: 'Source Sans Pro';
+         font-size: larger;}
+      h1, h2, h3 {
+        font-family: 'Roboto';
+        font-weight: bold;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Source Code Pro'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Introduction to Gurobi
+
+---
+
+# Agenda
+
+1. Creating and Solving an LP
+2. Binary Variables: Solving a MIP
+3. 
+
+---
+
+# Creating a LP
+
+## The LP Model
+\begin{align}
+\max x +y + 2z\\\\
+x+2y+3z \le 4\\\\
+x+y \ge 1\\\\
+x,y,z \ge 0
+\end{align}
+--
+
+## Step 1: Loading Gurobi
+
+```python
+import gurobipy as grb
+```
+
+---
+
+# Creating a LP
+
+## The LP Model
+\begin{align}
+\max x +y + 2z\\\\
+x+2y+3z \le 4\\\\
+x+y \ge 1\\\\
+x,y,z \ge 0
+\end{align}
+
+## Step 2: Create a Model
+
+```python
+m = grb.Model()
+```
+
+---
+
+# Creating a LP
+
+## The LP Model
+\begin{align}
+\max x +y + 2z\\\\
+x+2y+3z \le 4\\\\
+x+y \ge 1\\\\
+x,y,z \ge 0
+\end{align}
+
+## Step 3: Create Variables
+
+```python
+x = m.addVar(name="x")
+y = m.addVar(name="y")
+z = m.addVar(name="z")
+```
+
+---
+
+# Creating a LP
+
+## The LP Model
+\begin{align}
+\max x +y + 2z\\\\
+x+2y+3z \le 4\\\\
+x+y \ge 1\\\\
+x,y,z \ge 0
+\end{align}
+
+## Step 4: Set Objective Function
+
+```python
+m.setObjective(x+y+2*z, grb.GRB.MAXIMIZE)
+```
+
+---
+
+# Creating a LP
+
+## The LP Model
+\begin{align}
+\max x +y + 2z\\\\
+x+2y+3z \le 4\\\\
+x+y \ge 1\\\\
+x,y,z \ge 0
+\end{align}
+
+## Step 5: Add Constraints
+
+```python
+c1 = m.addConstr(x+2*y+3*z <= 4>)
+c2 = m.addConstr(x+y >= 1)
+```
+
+---
+
+# Solving the LP
+
+## The LP Model
+\begin{align}
+\max x +y + 2z\\\\
+x+2y+3z \le 4\\\\
+x+y \ge 1\\\\
+x,y,z \ge 0
+\end{align}
+
+## Step 6: Solve
+
+```python
+m.optimize()
+```
+
+---
+
+# Solving the LP
+
+## Step 7: Display Solution
+
+```python
+print(f"Solution Status: {m.status}")
+
+x_sol = x.x
+y_sol = y.x
+z_sol = z.x
+print(f"Solution: x={x_sol}, y={y_sol}, z={z_sol}")
+```
+--
+
+```python
+print(fb"Duals: pi_1 = {c1.pi}, pi_2 = {c2.pi}")
+```
+
+---
+
+# Binary Variables
+
+## The MIP Model
+\begin{align}
+\max x +y + 2z\\\\
+x+2y+3z \le 4\\\\
+x+y \ge 1\\\\
+x,y,z \in \\{0,1\\}
+\end{align}
+--
+
+## Step 8: Make Variables Binary
+
+```python
+x.vtype=grb.GRB.BINARY
+y.vtype=grb.GRB.BINARY
+z.vtype=grb.GRB.BINARY
+```
+
+---
+
+# Binary Variables
+
+## The MIP Model
+\begin{align}
+\max x +y + 2z\\\\
+x+2y+3z \le 4\\\\
+x+y \ge 1\\\\
+x,y,z \in \\{0,1\\}
+\end{align}
+
+## Step 8': Make Variables Binary at Creation
+
+```python
+x = m.addVar(vtype=grb.GRB.BINARY,name="x")
+y = m.addVar(vtype=grb.GRB.BINARY,name="y")
+z = m.addVar(vtype=grb.GRB.BINARY,name="z")
+```
+
+---
+
+# Creating a MIP
+
+## Alternative Implementation
+Use `addVars()` to add more than one variable.
+
+```python
+m = grb.Model()
+x = m.addVars(range(3), vtype=grb.GRB.BINARY, name="x")
+
+m.setObjective(x[0]+ x[1] + 2*x[2], grb.GRB.MAXIMIZE)
+c1 = m.addConstr(x[0] + 2*x[1] + 3*x[2] <= 4)
+c2 = m.addConstr(x[0] + x[1] >= 1)
+
+m.optimize()
+
+for i in range(3):
+    print(f"x[{i}] = {x[i].x}")
+```
+
+---
+
+# Variables with Tuples as Indices
+
+* Use `addVars()` with more than one index set to create variables indexed by tuples.
+
+```python
+student = ['a','b','c']
+advisors = ['dr. x', 'prof. y', 'dr. z']
+
+x=m.addVars(students, advisors, vtype=grb.GRB.BINARY)
+```
+--
+
+* Set objective coefficients during variable creation.
+
+```python
+preferences = {('a', 'dr. x'): 5,
+               ('a', 'prof. y'): 8,
+               ...
+               ('c', 'dr. z'): 3}
+
+x=m.addVars(students, advisors, obj=preferences,
+            vtype=grb.GRB.BINARY)
+m.modelsense=grb.GRB.MAXIMIZE
+```
+
+---
+
+# Summation
+
+* Use `x.sum()` for summation of variables in contraint generation.
+* Shorthand for summing up over all values of an index: `'*'`
+
+Example: $$\sum_{i=1}^3 x[i,1] = 1$$
+
+```python
+x=m.addVars(students, advisors, vtype=grb.GRB.BINARY)
+m.addConstr(x.sum('*',1) == 1)
+```
+
+---
+
+# Generator Expressions
+
+* Generator expression can be used to generate multiple constraints:
+
+```python
+x=m.addVars(students, advisors, vtype=grb.GRB.BINARY)
+m.addConstrs(x.sum('*',i) == 1 for i in students)
+```
+--
+
+* Use `grb.quicksum()` for summation without shorthands:
+
+```python
+m.addConstrs(grb.quicksum(x[i,j]
+                 for j in advisors   ) == 1
+                 for i in studs)
+```
+
+    </textarea>
+    <script src="out/remark.js" type="text/javascript">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_HTML&delayStartupUntil=configured" type="text/javascript"></script>
+    <script type="text/javascript">
+     var slideshow = remark.create();
+
+     // Setup MathJax
+     MathJax.Hub.Config({
+         tex2jax: {
+             skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+         }
+     });
+
+     MathJax.Hub.Configured();
+    </script>
+  </body>
+</html>
